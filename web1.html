@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FBX Loader with Color Buttons</title>
+    <style>
+        body { 
+            margin: 0; 
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+        }
+        #canvas-container {
+            width: 300px;
+            height: 300px;
+            border: 1px solid #ccc;
+            background-color: #e0e0e0;
+        }
+        #button-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 300px;
+            margin-top: 10px;
+        }
+        .button-row {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        .color-button {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+        .color-button:hover {
+            transform: scale(1.1);
+        }
+        .color-button:active {
+            transform: scale(0.9);
+        }
+        #loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: none;
+        }
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #3498db;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div id="canvas-container">
+        <div id="loading">
+            <div class="spinner"></div>
+        </div>
+    </div>
+    <div id="button-container">
+        <div class="button-row">
+            <button class="color-button" data-object="Object_1" data-color="#FF0000" style="background-color: #FF0000;"></button>
+            <button class="color-button" data-object="Object_1" data-color="#FFA500" style="background-color: #FFA500;"></button>
+            <button class="color-button" data-object="Object_1" data-color="#00FF00" style="background-color: #00FF00;"></button>
+            <button class="color-button" data-object="Object_1" data-color="#0000FF" style="background-color: #0000FF;"></button>
+            <button class="color-button" data-object="Object_1" data-color="#800080" style="background-color: #800080;"></button>
+        </div>
+        <div class="button-row">
+            <button class="color-button" data-object="Object_2" data-color="#FF0000" style="background-color: #FF0000;"></button>
+            <button class="color-button" data-object="Object_2" data-color="#FFA500" style="background-color: #FFA500;"></button>
+            <button class="color-button" data-object="Object_2" data-color="#00FF00" style="background-color: #00FF00;"></button>
+            <button class="color-button" data-object="Object_2" data-color="#0000FF" style="background-color: #0000FF;"></button>
+            <button class="color-button" data-object="Object_2" data-color="#800080" style="background-color: #800080;"></button>
+        </div>
+        <div class="button-row">
+            <button class="color-button" data-object="Object_3" data-color="#FF0000" style="background-color: #FF0000;"></button>
+            <button class="color-button" data-object="Object_3" data-color="#FFA500" style="background-color: #FFA500;"></button>
+            <button class="color-button" data-object="Object_3" data-color="#00FF00" style="background-color: #00FF00;"></button>
+            <button class="color-button" data-object="Object_3" data-color="#0000FF" style="background-color: #0000FF;"></button>
+            <button class="color-button" data-object="Object_3" data-color="#800080" style="background-color: #800080;"></button>
+        </div>
+        <div class="button-row">
+            <button class="color-button" data-object="Object_4" data-color="#FF0000" style="background-color: #FF0000;"></button>
+            <button class="color-button" data-object="Object_4" data-color="#FFA500" style="background-color: #FFA500;"></button>
+            <button class="color-button" data-object="Object_4" data-color="#00FF00" style="background-color: #00FF00;"></button>
+            <button class="color-button" data-object="Object_4" data-color="#0000FF" style="background-color: #0000FF;"></button>
+            <button class="color-button" data-object="Object_4" data-color="#800080" style="background-color: #800080;"></button>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fflate@0.7.4/umd/index.min.js"></script>
+    <script src="https://cdn.rawgit.com/mrdoob/three.js/r128/examples/js/loaders/FBXLoader.js"></script>
+    <script src="https://cdn.rawgit.com/mrdoob/three.js/r128/examples/js/controls/OrbitControls.js"></script>
+
+    <script>
+        let scene, camera, renderer, controls, loadedObject;
+
+        function init() {
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0xe0e0e0);
+            camera = new THREE.PerspectiveCamera(75, 300 / 300, 0.1, 1000);
+            
+            const container = document.getElementById('canvas-container');
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(300, 300);
+            container.appendChild(renderer.domElement);
+
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+            scene.add(ambientLight);
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
+            directionalLight.position.set(1, 1, 1);
+            scene.add(directionalLight);
+
+            camera.position.set(0, 5, 10);
+
+            // Show loading animation before loading the model
+            document.getElementById('loading').style.display = 'block';
+
+            loadFBXModel();
+
+            // Add event listeners for color buttons
+            document.querySelectorAll('.color-button').forEach(button => {
+                button.addEventListener('click', () => {
+                    const objectName = button.getAttribute('data-object');
+                    const color = button.getAttribute('data-color');
+                    changeModelColor(objectName, color);
+                });
+            });
+        }
+
+        function loadFBXModel() {
+            const loader = new THREE.FBXLoader();
+            loader.load(
+                './reduced_3dModell.fbx',
+                (object) => {
+                    loadedObject = object;  // Store the loaded object
+                    const box = new THREE.Box3().setFromObject(object);
+                    const center = box.getCenter(new THREE.Vector3());
+                    const size = box.getSize(new THREE.Vector3());
+                    const maxDim = Math.max(size.x, size.y, size.z);
+                    const scale = 5 / maxDim;
+                    object.scale.setScalar(scale);
+                    object.position.sub(center.multiplyScalar(scale));
+
+                    object.rotation.x = Math.PI/2; // Rotate around X-axis
+                    object.rotation.y = Math.PI; // Rotate around Y-axis
+                    object.rotation.z = 0; // Rotate around Z-axis
+
+                    scene.add(object);
+
+                    const boundingBox = new THREE.Box3().setFromObject(object);
+                    const center2 = boundingBox.getCenter(new THREE.Vector3());
+                    const size2 = boundingBox.getSize(new THREE.Vector3());
+                    const maxDim2 = Math.max(size2.x, size2.y, size2.z);
+                    const fov = camera.fov * (Math.PI / 180);
+                    const cameraZ = Math.abs(maxDim2 / 2 / Math.tan(fov / 2)) * 2;
+                    camera.position.set(center2.x, center2.y, center2.z + cameraZ);
+                    camera.lookAt(center2);
+                    controls.target.copy(center2);
+                    controls.update();
+
+                    // Hide loading animation after the model is loaded
+                    document.getElementById('loading').style.display = 'none';
+                },
+                (xhr) => {
+                    console.log((xhr.loaded / xhr.total * 100) + '% loaded');
+                },
+                (error) => {
+                    console.error('An error occurred while loading the FBX file:', error);
+                    // Hide loading animation if there's an error
+                    document.getElementById('loading').style.display = 'none';
+                }
+            );
+        }
+
+        function changeModelColor(objectName, color) {
+            if (loadedObject) {
+                loadedObject.traverse((child) => {
+                    if (child.isMesh && child.name === objectName) {
+                        child.material.color.setStyle(color);
+                    }
+                });
+            }
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+
+        init();
+        animate();
+    </script>
+</body>
+</html>
